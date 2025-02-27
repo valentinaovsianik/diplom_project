@@ -38,15 +38,13 @@ class LessonSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-from rest_framework import serializers
-
-
 class TestSerializer(serializers.ModelSerializer):
     """Сериализатор теста"""
 
     class Meta:
         model = Test
         fields = "__all__"
+        read_only_fields = ["owner"]  # Необязательное поле
 
 
 class AnswerSerializer(serializers.ModelSerializer):

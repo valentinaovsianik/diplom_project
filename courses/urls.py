@@ -1,34 +1,13 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import (
-    AnswerCreateApiView,
-    AnswerDestroyApiView,
-    AnswerListApiView,
-    AnswerRetrieveApiView,
-    AnswerUpdateApiView,
-    CourseCreateApiView,
-    CourseDestroyApiView,
-    CourseListApiView,
-    CourseRetrieveApiView,
-    CourseUpdateApiView,
-    LessonCreateApiView,
-    LessonDestroyApiView,
-    LessonListApiView,
-    LessonRetrieveApiView,
-    LessonUpdateApiView,
-    QuestionCreateApiView,
-    QuestionDestroyApiView,
-    QuestionListApiView,
-    QuestionRetrieveApiView,
-    QuestionUpdateApiView,
-    TestCreateApiView,
-    TestDestroyApiView,
-    TestListApiView,
-    TestRetrieveApiView,
-    TestSubmitApiView,
-    TestUpdateApiView,
-)
+from .views import (AnswerCreateApiView, AnswerDestroyApiView, AnswerListApiView, AnswerRetrieveApiView,
+                    AnswerUpdateApiView, CourseCreateApiView, CourseDestroyApiView, CourseListApiView,
+                    CourseRetrieveApiView, CourseUpdateApiView, LessonCreateApiView, LessonDestroyApiView,
+                    LessonListApiView, LessonRetrieveApiView, LessonUpdateApiView, QuestionCreateApiView,
+                    QuestionDestroyApiView, QuestionListApiView, QuestionRetrieveApiView, QuestionUpdateApiView,
+                    TestCreateApiView, TestDestroyApiView, TestListApiView, TestRetrieveApiView, TestSubmitApiView,
+                    TestUpdateApiView)
 
 app_name = "courses"
 
