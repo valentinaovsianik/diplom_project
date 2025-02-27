@@ -1,18 +1,16 @@
+from django.utils.decorators import method_decorator
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from users.permissions import IsAdmin, IsStudent, IsTeacher
 
 from .models import Answer, Course, Lesson, Question, Test, TestResult
-from .serializers import (
-    AnswerSerializer,
-    CourseSerializer,
-    LessonSerializer,
-    QuestionSerializer,
-    TestResultSerializer,
-    TestSerializer,
-)
+from .serializers import (AnswerSerializer, CourseSerializer, LessonSerializer, QuestionSerializer,
+                          TestResultSerializer, TestSerializer)
 
 
+@method_decorator(name="create", decorator=swagger_auto_schema(operation_description="Создание нового курса"))
 class CourseCreateApiView(CreateAPIView):
     """Создание курса"""
 
@@ -30,7 +28,10 @@ class CourseListApiView(ListAPIView):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class CourseRetrieveApiView(RetrieveAPIView):
@@ -46,7 +47,10 @@ class CourseUpdateApiView(UpdateAPIView):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class CourseDestroyApiView(DestroyAPIView):
@@ -54,7 +58,10 @@ class CourseDestroyApiView(DestroyAPIView):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class LessonCreateApiView(CreateAPIView):
@@ -62,7 +69,10 @@ class LessonCreateApiView(CreateAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
     def perform_create(self, serializer):
         """Определение владельца урока"""
@@ -74,7 +84,10 @@ class LessonListApiView(ListAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class LessonRetrieveApiView(RetrieveAPIView):
@@ -82,7 +95,10 @@ class LessonRetrieveApiView(RetrieveAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class LessonUpdateApiView(UpdateAPIView):
@@ -90,7 +106,10 @@ class LessonUpdateApiView(UpdateAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class LessonDestroyApiView(DestroyAPIView):
@@ -98,7 +117,10 @@ class LessonDestroyApiView(DestroyAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class TestCreateApiView(CreateAPIView):
@@ -106,7 +128,10 @@ class TestCreateApiView(CreateAPIView):
 
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -117,7 +142,10 @@ class TestListApiView(ListAPIView):
 
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class TestRetrieveApiView(RetrieveAPIView):
@@ -125,7 +153,10 @@ class TestRetrieveApiView(RetrieveAPIView):
 
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class TestUpdateApiView(UpdateAPIView):
@@ -133,7 +164,10 @@ class TestUpdateApiView(UpdateAPIView):
 
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class TestDestroyApiView(DestroyAPIView):
@@ -141,19 +175,25 @@ class TestDestroyApiView(DestroyAPIView):
 
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class TestSubmitApiView(CreateAPIView):
-    """Предствление для выполнения теста"""
+    """Представление для выполнения теста"""
 
     queryset = TestResult.objects.all()
     serializer_class = TestResultSerializer
-    permission_classes = (IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsStudent,
+    )
 
     def perform_create(self, serializer):
         test = serializer.validated_data["test"]
-        answers = serializer.validated_data["answers", {}]
+        answers = serializer.validated_data["answers"]
 
         def calculate_score(test, answers):
             """Расчет баллов для теста"""
@@ -180,59 +220,89 @@ class TestSubmitApiView(CreateAPIView):
 class QuestionListApiView(ListAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class QuestionRetrieveApiView(RetrieveAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class QuestionCreateApiView(CreateAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class QuestionUpdateApiView(UpdateAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class QuestionDestroyApiView(DestroyAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 # Представления для Answer
 class AnswerListApiView(ListAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class AnswerRetrieveApiView(RetrieveAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = (IsAdmin | IsTeacher | IsStudent,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher | IsStudent,
+    )
 
 
 class AnswerCreateApiView(CreateAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class AnswerUpdateApiView(UpdateAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
 
 
 class AnswerDestroyApiView(DestroyAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = (IsAdmin | IsTeacher,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdmin | IsTeacher,
+    )
