@@ -11,7 +11,6 @@ from .serializers import (
     TestResultSerializer,
     TestSerializer,
 )
-from .services import calculate_score
 
 
 class CourseCreateApiView(CreateAPIView):
@@ -154,10 +153,24 @@ class TestSubmitApiView(CreateAPIView):
 
     def perform_create(self, serializer):
         test = serializer.validated_data["test"]
-        answers = serializer.validated_data["answers"]
+        answers = serializer.validated_data["answers", {}]
 
-        # Рассчитываем баллы с помощью функции calculate_score
-        score = calculate_score(test, answers)
+        def calculate_score(test, answers):
+            """Расчет баллов для теста"""
+            score = 0
+            for question in test.questions.all():
+                # Получаем список ID правильных ответов для текущего вопроса
+                correct_answers = question.answers.filter(is_correct=True).values_list("id", flat=True)
+
+                # Получаем список ID ответов пользователя для текущего вопроса
+                user_answers = answers.get(str(question.id), [])
+
+                # Сравниваем ответы пользователя с правильными ответами
+                if set(user_answers) == set(correct_answers):
+                    score += 1
+            return score
+
+        score = calculate_score(test, answers)  # Вычисляем баллы
 
         # Сохраняем результат теста
         serializer.save(student=self.request.user, score=score)
