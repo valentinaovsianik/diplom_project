@@ -1,8 +1,8 @@
 from django.contrib.auth.models import Group
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
-from courses.models import Answer, Course, Lesson, Question, Test
+from courses.models import Answer, Course, Lesson, Question, Test, TestResult
 from users.models import User
 
 
@@ -306,3 +306,75 @@ class TestAnswerApiViews(APITestCase):
         self.client.force_authenticate(user=self.teacher)
         response = self.client.delete(self.answer_delete_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class TestSubmitApiViewTest(APITestCase):
+    def setUp(self):
+        # Создаем пользователя-студента
+        self.user = User.objects.create(email="student-test@example.com", password="password123")
+
+        self.student_group, created = Group.objects.get_or_create(name="Student")
+        self.user.groups.add(self.student_group)
+        self.user.refresh_from_db()
+
+        # Создаем преподавателя
+        self.teacher = User.objects.create(email="teacher@example.com", password="password123")
+        self.teacher_group, _ = Group.objects.get_or_create(name="Преподаватели")
+        self.teacher.groups.add(self.teacher_group)
+
+        # Создаём курс, урок и тест
+        self.course = Course.objects.create(name="Курс", description="Описание курса", owner=self.teacher)
+        self.lesson = Lesson.objects.create(
+            title="Урок 1", content="Описание урока", course=self.course, owner=self.teacher
+        )
+        self.test = Test.objects.create(
+            title="Тест 2", description="Содержание теста", owner=self.teacher, lesson=self.lesson
+        )
+
+        # Добавляем вопросы и ответы
+        self.question1 = Question.objects.create(test=self.test, text="Вопрос 1")
+        self.question2 = Question.objects.create(test=self.test, text="Вопрос 2")
+
+        self.correct_answer1 = Answer.objects.create(question=self.question1, text="Правильный 1", is_correct=True)
+        self.incorrect_answer1 = Answer.objects.create(
+            question=self.question1, text="Неправильный 1", is_correct=False
+        )
+
+        self.correct_answer2 = Answer.objects.create(question=self.question2, text="Правильный 2", is_correct=True)
+        self.incorrect_answer2 = Answer.objects.create(
+            question=self.question2, text="Неправильный 2", is_correct=False
+        )
+
+        # URL для отправки теста
+        self.test_submit_url = f"/courses/tests/{self.test.id}/submit/"
+
+        # Инициализируем клиент API
+        self.client = APIClient()
+
+    def test_submit_test(self):
+        """Тестирование подсчета баллов за правильные ответы"""
+
+        # Принудительная аутентификация пользователя
+        self.client.force_authenticate(user=self.user)
+
+        # Данные для отправки в тест (правильные ответы)
+        data = {
+            "test": self.test.id,
+            "answers": {
+                str(self.question1.id): [self.correct_answer1.id],
+                str(self.question2.id): [self.correct_answer2.id],
+            },
+        }
+
+        # Отправляем запрос на выполнение теста
+        response = self.client.post(self.test_submit_url, data, format="json")
+
+        # Проверяем статус ответа
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Проверяем правильность подсчета баллов
+        self.assertEqual(response.data["score"], 2)  # Оба ответа правильные
+
+        # Проверяем сохранение результата в БД
+        test_result = TestResult.objects.get(student=self.user, test=self.test)
+        self.assertEqual(test_result.score, 2)
