@@ -10,15 +10,12 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 ALLOWED_HOSTS = ["*"]
-
-
 
 
 INSTALLED_APPS = [
@@ -30,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "drf_yasg",
     "corsheaders",
     "users",
     "courses",
@@ -66,7 +64,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -95,16 +92,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+LANGUAGE_CODE = "en-us"
 
-LANGUAGE_CODE = "Europe/Moscow"
+TIME_ZONE = "Europe/Moscow"
 
-TIME_ZONE = "UTC"
 
 USE_I18N = True
 USE_L18N = True
 
 USE_TZ = True
-
 
 
 STATIC_URL = "static/"
@@ -116,3 +112,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "users.User"
+
+# Настройки DRF
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),  # Токен доступа живет 1 час
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=5),  # Токен обновления живет 5 дней
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
