@@ -1,5 +1,6 @@
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import serializers
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -192,21 +193,28 @@ class TestSubmitApiView(CreateAPIView):
     )
 
     def perform_create(self, serializer):
-        test = serializer.validated_data["test"]
-        answers = serializer.validated_data["answers"]
+        # Проверяем, передан ли тест
+        test = serializer.validated_data.get("test")
+        if test is None:
+            raise serializers.ValidationError({"test": "Тест обязателен"})
+
+        # Получаем ответы пользователя
+        answers = self.request.data.get("answers", {})
+        if not isinstance(answers, dict):
+            raise serializers.ValidationError({"answers": "Ожидается JSON-объект с ответами "})
 
         def calculate_score(test, answers):
             """Расчет баллов для теста"""
             score = 0
             for question in test.questions.all():
                 # Получаем список ID правильных ответов для текущего вопроса
-                correct_answers = question.answers.filter(is_correct=True).values_list("id", flat=True)
+                correct_answers = set(question.answers.filter(is_correct=True).values_list("id", flat=True))
 
-                # Получаем список ID ответов пользователя для текущего вопроса
-                user_answers = answers.get(str(question.id), [])
+                # Получаем ответы пользователя для данного вопроса
+                user_answers = set(answers.get(str(question.id), []))
 
                 # Сравниваем ответы пользователя с правильными ответами
-                if set(user_answers) == set(correct_answers):
+                if user_answers == correct_answers:
                     score += 1
             return score
 
