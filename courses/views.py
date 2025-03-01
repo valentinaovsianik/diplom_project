@@ -7,8 +7,14 @@ from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsAdmin, IsStudent, IsTeacher
 
 from .models import Answer, Course, Lesson, Question, Test, TestResult
-from .serializers import (AnswerSerializer, CourseSerializer, LessonSerializer, QuestionSerializer,
-                          TestResultSerializer, TestSerializer)
+from .serializers import (
+    AnswerSerializer,
+    CourseSerializer,
+    LessonSerializer,
+    QuestionSerializer,
+    TestResultSerializer,
+    TestSerializer,
+)
 
 
 @method_decorator(name="create", decorator=swagger_auto_schema(operation_description="Создание нового курса"))
