@@ -68,6 +68,12 @@ class QuestionSerializer(serializers.ModelSerializer):
 class TestResultSerializer(serializers.ModelSerializer):
     """Сериализатор результата теста"""
 
+    answers = serializers.JSONField(read_only=True)  # JSON-объект с ответами пользователя только для чтения
+
     class Meta:
         model = TestResult
-        fields = "__all__"
+        fields = ["student", "test", "answers", "score"]
+        extra_kwargs = {
+            "student": {"required": False},  # Убираем обязательность
+            "score": {"required": False},
+        }
