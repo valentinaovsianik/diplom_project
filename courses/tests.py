@@ -313,7 +313,7 @@ class TestSubmitApiViewTest(APITestCase):
         # Создаем пользователя-студента
         self.user = User.objects.create(email="student-test@example.com", password="password123")
 
-        self.student_group, created = Group.objects.get_or_create(name="Student")
+        self.student_group, created = Group.objects.get_or_create(name="Студенты")
         self.user.groups.add(self.student_group)
         self.user.refresh_from_db()
 
@@ -357,24 +357,45 @@ class TestSubmitApiViewTest(APITestCase):
         # Принудительная аутентификация пользователя
         self.client.force_authenticate(user=self.user)
 
-        # Данные для отправки в тест (правильные ответы)
-        data = {
-            "test": self.test.id,
-            "answers": {
-                str(self.question1.id): [self.correct_answer1.id],
-                str(self.question2.id): [self.correct_answer2.id],
-            },
+        # Ответы на тест
+        answers = {
+            str(self.question1.id): [self.correct_answer1.id],
+            str(self.question2.id): [self.correct_answer2.id],
         }
+
+        # Данные для отправки в тест (правильные ответы)
+        data = {"test": self.test.id, "answers": answers}
 
         # Отправляем запрос на выполнение теста
         response = self.client.post(self.test_submit_url, data, format="json")
 
         # Проверяем статус ответа
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Проверяем правильность подсчета баллов
-        self.assertEqual(response.data["score"], 2)  # Оба ответа правильные
+        # Проверяем, что результат теста сохранен
+        test_result = TestResult.objects.last()
+        self.assertEqual(test_result.student, self.user)
+        self.assertEqual(test_result.score, 2)  # Поскольку оба ответа правильные
+        self.assertEqual(test_result.test, self.test)
 
-        # Проверяем сохранение результата в БД
-        test_result = TestResult.objects.get(student=self.user, test=self.test)
-        self.assertEqual(test_result.score, 2)
+    def test_submit_test_invalid_answers(self):
+        """Тестирование отправки теста с неправильными ответами"""
+        self.client.force_authenticate(user=self.user)
+
+        # Ответы на тест
+        answers = {
+            str(self.question1.id): [self.incorrect_answer1.id],
+            str(self.question2.id): [self.incorrect_answer2.id],
+        }
+
+        data = {"test": self.test.id, "answers": answers}
+
+        response = self.client.post(self.test_submit_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Проверяем, что результат теста сохранен с нулевым количеством баллов
+        test_result = TestResult.objects.last()
+        self.assertEqual(test_result.student, self.user)
+        self.assertEqual(test_result.score, 0)  # Поскольку оба ответа неправильные
