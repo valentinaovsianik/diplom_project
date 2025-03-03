@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
 
 from courses.models import Answer, Course, Lesson, Question, Test, TestResult
@@ -379,6 +380,10 @@ class TestSubmitApiViewTest(APITestCase):
         self.assertEqual(test_result.score, 2)  # Поскольку оба ответа правильные
         self.assertEqual(test_result.test, self.test)
 
+        # Проверяем, что API вернул правильный результат
+        self.assertIn("score", response.data)  # Проверяем, что в ответе есть поле "score"
+        self.assertEqual(response.data["score"], 2)  # Проверяем, что значение "score" равно 2
+
     def test_submit_test_invalid_answers(self):
         """Тестирование отправки теста с неправильными ответами"""
         self.client.force_authenticate(user=self.user)
@@ -399,3 +404,7 @@ class TestSubmitApiViewTest(APITestCase):
         test_result = TestResult.objects.last()
         self.assertEqual(test_result.student, self.user)
         self.assertEqual(test_result.score, 0)  # Поскольку оба ответа неправильные
+
+        # Проверяем, что API вернул правильный результат
+        self.assertIn("score", response.data)  # Проверяем, что в ответе есть поле "score"
+        self.assertEqual(response.data["score"], 0)  # Проверяем, что значение "score" равно 0
