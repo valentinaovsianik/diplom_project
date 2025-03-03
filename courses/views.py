@@ -1,8 +1,9 @@
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from users.permissions import IsAdmin, IsStudent, IsTeacher
 
@@ -228,6 +229,9 @@ class TestSubmitApiView(CreateAPIView):
 
         # Сохраняем результат теста
         serializer.save(student=self.request.user, score=score)
+
+        # Выводим результат теста
+        return Response({"score": score}, status=status.HTTP_201_CREATED)
 
 
 # Представления для Question
